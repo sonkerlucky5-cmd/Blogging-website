@@ -1,0 +1,98 @@
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brand-lockup__mark {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(18, 36, 58, 0.18);
+}
+
+.brand-lockup__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.brand-lockup__title {
+  display: block;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.34rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.brand-lockup__subtitle {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.brand-lockup.is-inverted .brand-lockup__title,
+.brand-lockup.is-inverted .brand-lockup__subtitle {
+  color: #fff;
+}
+
+.brand-lockup--hero {
+  gap: 16px;
+}
+
+.brand-lockup--hero .brand-lockup__mark {
+  width: 62px;
+  height: 62px;
+  border-radius: 20px;
+}
+
+.brand-lockup--hero .brand-lockup__title {
+  font-size: 1.58rem;
+}
+
+.brand-lockup--hero .brand-lockup__subtitle {
+  font-size: 0.82rem;
+}
+
+.brand-lockup--compact {
+  gap: 12px;
+}
+
+.brand-lockup--compact .brand-lockup__mark {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+}
+
+.brand-lockup--compact .brand-lockup__title {
+  font-size: 1.12rem;
+}
+
+.brand-lockup--compact .brand-lockup__subtitle {
+  font-size: 0.72rem;
+}
+
+@media (max-width: 840px) {
+  .brand-lockup__mark {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
+  .brand-lockup__title {
+    font-size: 1.18rem;
+  }
+
+  .brand-lockup__subtitle {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+  }
+}

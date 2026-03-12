@@ -1,0 +1,83 @@
+.loading-screen {
+  display: flex;
+  width: min(460px, 100%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 34px 24px;
+  text-align: center;
+}
+
+.loading-screen--compact {
+  width: 100%;
+  padding: 26px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.loading-screen--compact:hover {
+  transform: translateY(-4px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-strong);
+}
+
+.loading-screen__spinner {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+}
+
+.loading-screen__spinner span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-top-color: var(--accent);
+  border-radius: 999px;
+  animation: loader-spin 1.2s linear infinite;
+}
+
+.loading-screen__spinner span:nth-child(2) {
+  inset: 8px;
+  border-top-color: var(--gold);
+  animation-duration: 1.55s;
+}
+
+.loading-screen__spinner span:nth-child(3) {
+  inset: 18px;
+  border-top-color: var(--sage);
+  animation-duration: 1.9s;
+}
+
+.loading-screen__copy strong {
+  display: block;
+  margin-bottom: 8px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.45rem;
+  line-height: 1.05;
+}
+
+.loading-screen__copy p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+@keyframes loader-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
