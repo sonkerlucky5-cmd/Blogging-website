@@ -3,6 +3,7 @@ import express from "express";
 const router = express.Router();
 
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const CATEGORY_OPTIONS = [
   "Strategy",
   "Engineering",
@@ -15,8 +16,10 @@ const CATEGORY_OPTIONS = [
   "Editorial",
 ];
 const LOCAL_FALLBACK_MODEL = "local-editorial-fallback";
+const DEFAULT_CHAT_MAX_OUTPUT_TOKENS = 900;
+const DEFAULT_READY_BLOG_MAX_OUTPUT_TOKENS = 2200;
 const LOCAL_NOTICE =
-  "Using local writing helper mode. Add OPENAI_API_KEY to backend/.env and restart the backend for full AI responses.";
+  "Using local writing helper mode. Add GEMINI_API_KEY or OPENAI_API_KEY to backend/.env and restart the backend for full AI responses.";
 const GENERIC_TOPIC_PHRASES = new Set([
   "that topic",
   "this topic",
@@ -161,19 +164,32 @@ function stripCodeFences(value) {
   return value.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
 }
 
-function getAssistantModel() {
-  return process.env.OPENAI_MODEL || "gpt-5-mini";
+function getOpenAiModel() {
+  return process.env.OPENAI_MODEL?.trim() || "gpt-5-mini";
 }
 
 function getAssistantRuntime(provider) {
   return {
-    model: provider === "openai" ? getAssistantModel() : LOCAL_FALLBACK_MODEL,
+    model:
+      provider === "openai"
+        ? getOpenAiModel()
+        : provider === "google"
+          ? getGeminiModel()
+          : LOCAL_FALLBACK_MODEL,
     provider,
     notice: provider === "local" ? LOCAL_NOTICE : "",
   };
 }
 
-function getResponseText(payload) {
+function getGeminiModel() {
+  return (
+    process.env.GEMINI_MODEL?.trim() ||
+    process.env.GOOGLE_AI_MODEL?.trim() ||
+    "gemini-2.5-flash"
+  );
+}
+
+function getOpenAiResponseText(payload) {
   if (typeof payload.output_text === "string" && payload.output_text.trim()) {
     return payload.output_text.trim();
   }
@@ -190,7 +206,34 @@ function getResponseText(payload) {
     .trim();
 }
 
-async function requestAssistant({ instructions, input, textFormat }) {
+function getGeminiApiKey() {
+  return (
+    process.env.GEMINI_API_KEY?.trim() ||
+    process.env.GOOGLE_AI_API_KEY?.trim() ||
+    process.env.GOOGLE_API_KEY?.trim() ||
+    ""
+  );
+}
+
+function getGeminiResponseText(payload) {
+  if (!Array.isArray(payload.candidates)) {
+    return "";
+  }
+
+  return payload.candidates
+    .flatMap((candidate) => candidate.content?.parts || [])
+    .filter((part) => typeof part.text === "string" && part.text.trim())
+    .map((part) => part.text.trim())
+    .join("\n")
+    .trim();
+}
+
+async function requestOpenAiAssistant({
+  instructions,
+  input,
+  textFormat,
+  maxOutputTokens,
+}) {
   if (!process.env.OPENAI_API_KEY) {
     throw createHttpError(
       "Missing OPENAI_API_KEY in backend environment variables",
@@ -205,9 +248,14 @@ async function requestAssistant({ instructions, input, textFormat }) {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: getAssistantModel(),
+      model: getOpenAiModel(),
       instructions,
       input,
+      ...(Number.isInteger(maxOutputTokens) && maxOutputTokens > 0
+        ? {
+            max_output_tokens: maxOutputTokens,
+          }
+        : {}),
       ...(textFormat
         ? {
             text: {
@@ -227,13 +275,126 @@ async function requestAssistant({ instructions, input, textFormat }) {
     );
   }
 
-  const text = getResponseText(payload);
+  const text = getOpenAiResponseText(payload);
 
   if (!text) {
     throw createHttpError("Assistant returned an empty response", 502);
   }
 
-  return text;
+  return {
+    provider: "openai",
+    text,
+  };
+}
+
+async function requestGeminiAssistant({
+  instructions,
+  input,
+  textFormat,
+  maxOutputTokens,
+}) {
+  const apiKey = getGeminiApiKey();
+
+  if (!apiKey) {
+    throw createHttpError(
+      "Missing GEMINI_API_KEY in backend environment variables",
+      503
+    );
+  }
+
+  const generationConfig = {
+    candidateCount: 1,
+  };
+
+  if (Number.isInteger(maxOutputTokens) && maxOutputTokens > 0) {
+    generationConfig.maxOutputTokens = maxOutputTokens;
+  }
+
+  if (textFormat?.schema) {
+    generationConfig.responseMimeType = "application/json";
+    generationConfig.responseJsonSchema = textFormat.schema;
+  }
+
+  const response = await fetch(
+    `${GEMINI_API_URL}/${getGeminiModel()}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [
+            {
+              text: instructions,
+            },
+          ],
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: input,
+              },
+            ],
+          },
+        ],
+        generationConfig,
+      }),
+    }
+  );
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw createHttpError(
+      payload.error?.message || "Gemini request failed",
+      response.status
+    );
+  }
+
+  const text = getGeminiResponseText(payload);
+
+  if (!text) {
+    throw createHttpError("Assistant returned an empty response", 502);
+  }
+
+  return {
+    provider: "google",
+    text,
+  };
+}
+
+async function requestAssistant({
+  instructions,
+  input,
+  textFormat,
+  maxOutputTokens,
+}) {
+  if (getGeminiApiKey()) {
+    return requestGeminiAssistant({
+      instructions,
+      input,
+      textFormat,
+      maxOutputTokens,
+    });
+  }
+
+  if (process.env.OPENAI_API_KEY?.trim()) {
+    return requestOpenAiAssistant({
+      instructions,
+      input,
+      textFormat,
+      maxOutputTokens,
+    });
+  }
+
+  throw createHttpError(
+    "Missing GEMINI_API_KEY or OPENAI_API_KEY in backend environment variables",
+    503
+  );
 }
 
 function tokenize(text) {
@@ -307,6 +468,11 @@ function normalizeForMatch(value) {
 function cleanExtractedTopic(value) {
   return value
     .replace(/["'`]/g, " ")
+    .replace(/\b(?:in|with)\s+a\s+[^.?!]+tone\b.*$/i, " ")
+    .replace(
+      /\bfor\s+(?:founders?|developers?|marketers?|leaders?|writers?|creators?|students?|teams?|business owners?|startup teams?|small businesses?)\b.*$/i,
+      " "
+    )
     .replace(
       /\b(?:a|an|the|professional|ready(?:-to-publish)?|full|complete|better|stronger|blog|article|post|draft|outline|summary|meta|intro|opening|headline|title|for me)\b/gi,
       " "
@@ -353,7 +519,7 @@ function extractTopicFromMessage(message, history = [], context = {}) {
     }
 
     const quotedMatch =
-      normalizedCandidate.match(/["“](.+?)["”]/) ||
+      normalizedCandidate.match(/"(.+?)"/) ||
       normalizedCandidate.match(/['`](.+?)['`]/);
 
     if (quotedMatch) {
@@ -403,6 +569,32 @@ function getLastMeaningfulUserPrompt(history = []) {
     .find(
       (entry) => entry.role !== "assistant" && typeof entry.content === "string" && entry.content.trim()
     )?.content;
+}
+
+function wantsReadyBlog(message) {
+  const lowerMessage = message.toLowerCase();
+
+  return (
+    /(ready blog|full blog|complete blog|publish-ready blog|ready article|full article|complete article)/.test(
+      lowerMessage
+    ) ||
+    (/(write|create|draft|generate|make)/.test(lowerMessage) &&
+      /(blog|article|post)/.test(lowerMessage) &&
+      /(ready|full|complete|publish-ready)/.test(lowerMessage))
+  );
+}
+
+function formatDraftAsChatReply(draft) {
+  return [
+    "Ready blog prepared.",
+    "",
+    `Title: ${draft.title}`,
+    `Category: ${draft.category}`,
+    `Summary: ${draft.summary}`,
+    "",
+    "Article:",
+    draft.content,
+  ].join("\n");
 }
 
 function buildBlogDirectionReply(topic, message, repeatedPrompt) {
@@ -509,6 +701,33 @@ function buildLocalChatReply({ message, context, history }) {
   const topic = extractTopicFromMessage(message, history, context);
   const repeatedPrompt = hasRepeatedPrompt(message, history);
   const lastUserPrompt = getLastMeaningfulUserPrompt(history);
+  const combinedBrief = [lastUserPrompt, message].filter(Boolean).join("\n\n");
+
+  if (wantsReadyBlog(message)) {
+    if (!isUsefulTopic(topic) && !isUsefulTopic(lastUserPrompt || "")) {
+      return [
+        "I can prepare a ready blog, but I need the topic first.",
+        "",
+        "Send it like this:",
+        "Topic: ...",
+        "Audience: ...",
+        "Tone: ...",
+        "Goal: ...",
+        "",
+        'Example: "Write a ready blog about AI tools for small business productivity for founders in a clear professional tone."',
+      ].join("\n");
+    }
+
+    return formatDraftAsChatReply(
+      buildLocalDraft({
+        mode: "ready",
+        brief: combinedBrief || message,
+        title: "",
+        category: inferCategory(combinedBrief || message, "Editorial"),
+        content: "",
+      })
+    );
+  }
 
   if (/(create|write|draft|blog|article|post)/.test(lowerMessage)) {
     if (!isUsefulTopic(topic) && !isUsefulTopic(lastUserPrompt || "")) {
@@ -651,18 +870,65 @@ router.post("/chat", async (req, res) => {
         );
 
   try {
-    const reply = await requestAssistant({
+    if (wantsReadyBlog(message)) {
+      const response = await requestAssistant({
+        instructions: `${SYSTEM_PROMPT}
+
+You are Atlas Journal's ready-blog assistant. Return valid JSON only.
+
+The JSON object must include:
+- "title": string
+- "category": string
+- "summary": string
+- "content": string
+
+Rules:
+- Choose "category" from this list only: ${CATEGORY_OPTIONS.join(", ")}
+- "title" must be publication-ready
+- "summary" should be one concise sentence
+- "content" should be a complete, publish-ready blog with a strong opening, clear sectioning, and a practical conclusion
+- Make the result polished, specific, and useful for a real reader`,
+        input: `Platform context:\n${serializedContext}\n\nRecent conversation:\n${
+          conversation || "No previous messages."
+        }\n\nUser request:\n${message}`,
+        maxOutputTokens: DEFAULT_READY_BLOG_MAX_OUTPUT_TOKENS,
+        textFormat: {
+          type: "json_schema",
+          name: "atlas_journal_ready_blog_chat",
+          strict: true,
+          schema: DRAFT_SCHEMA,
+        },
+      });
+
+      const draft = JSON.parse(stripCodeFences(response.text));
+      const normalizedCategory = CATEGORY_OPTIONS.includes(draft.category)
+        ? draft.category
+        : inferCategory(message, "Editorial");
+
+      return res.json({
+        reply: formatDraftAsChatReply({
+          title: typeof draft.title === "string" ? draft.title.trim() : "",
+          category: normalizedCategory,
+          summary: typeof draft.summary === "string" ? draft.summary.trim() : "",
+          content: typeof draft.content === "string" ? draft.content.trim() : "",
+        }),
+        ...getAssistantRuntime(response.provider),
+      });
+    }
+
+    const response = await requestAssistant({
       instructions: `${SYSTEM_PROMPT}
 
 You are currently helping inside Atlas Journal, a professional blogging platform. Be especially strong at blog ideas, titles, summaries, structure, drafts, UX copy, and practical solutions related to content workflows.`,
       input: `Platform context:\n${serializedContext}\n\nRecent conversation:\n${
         conversation || "No previous messages."
       }\n\nUser request:\n${message}`,
+      maxOutputTokens: DEFAULT_CHAT_MAX_OUTPUT_TOKENS,
     });
 
     return res.json({
-      reply,
-      ...getAssistantRuntime("openai"),
+      reply: response.text,
+      ...getAssistantRuntime(response.provider),
     });
   } catch (error) {
     console.warn("Assistant chat fallback:", error.message);
@@ -692,7 +958,7 @@ router.post("/draft", async (req, res) => {
   }
 
   try {
-    const responseText = await requestAssistant({
+    const response = await requestAssistant({
       instructions: `${SYSTEM_PROMPT}
 
 You are Atlas Journal's draft assistant. Return valid JSON only.
@@ -724,6 +990,7 @@ ${category}
 
 Existing content:
 ${content.slice(0, 6000) || "No existing content provided."}`,
+      maxOutputTokens: DEFAULT_READY_BLOG_MAX_OUTPUT_TOKENS,
       textFormat: {
         type: "json_schema",
         name: "atlas_journal_draft",
@@ -732,7 +999,7 @@ ${content.slice(0, 6000) || "No existing content provided."}`,
       },
     });
 
-    const draft = JSON.parse(stripCodeFences(responseText));
+    const draft = JSON.parse(stripCodeFences(response.text));
     const normalizedCategory = CATEGORY_OPTIONS.includes(draft.category)
       ? draft.category
       : category;
@@ -743,7 +1010,7 @@ ${content.slice(0, 6000) || "No existing content provided."}`,
       image: pickCoverImage(normalizedCategory),
       summary: typeof draft.summary === "string" ? draft.summary.trim() : "",
       content: typeof draft.content === "string" ? draft.content.trim() : "",
-      ...getAssistantRuntime("openai"),
+      ...getAssistantRuntime(response.provider),
     });
   } catch (error) {
     console.warn("Assistant draft fallback:", error.message);
