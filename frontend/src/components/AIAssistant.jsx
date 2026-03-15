@@ -14,7 +14,7 @@ import "./AIAssistant.css";
 const INITIAL_MESSAGE = {
   role: "assistant",
   content:
-    "Tell me your topic, audience, and tone. I can prepare a ready blog, titles, or a stronger draft.",
+    "Type any topic and I will return a ready blog directly. If you only want titles, an outline, or a summary, say that clearly.",
 };
 
 function AIAssistant() {
@@ -383,7 +383,7 @@ function AIAssistant() {
               value={input}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleComposerKeyDown}
-              placeholder="Example: Write a ready blog about AI tools for small business productivity for founders..."
+              placeholder="Example: AI tools for small business productivity"
               rows="4"
             />
 

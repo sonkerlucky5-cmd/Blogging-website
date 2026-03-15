@@ -584,6 +584,40 @@ function wantsReadyBlog(message) {
   );
 }
 
+function isFormattingRequest(lowerMessage) {
+  return /(title|headline|name|outline|structure|framework|intro|opening|lead|summary|excerpt|meta)/.test(
+    lowerMessage
+  );
+}
+
+function isTechnicalRequest(lowerMessage) {
+  return /(code|bug|fix|error|backend|frontend|server|api|database|mongodb|react|node|auth|login|deploy)/.test(
+    lowerMessage
+  );
+}
+
+function shouldAutoCreateBlog(message, history = [], context = {}) {
+  const lowerMessage = message.toLowerCase();
+
+  if (wantsReadyBlog(message)) {
+    return true;
+  }
+
+  if (isFormattingRequest(lowerMessage) || isTechnicalRequest(lowerMessage)) {
+    return false;
+  }
+
+  const normalizedMessage = normalizeForMatch(message);
+  const messageTokens = normalizedMessage ? normalizedMessage.split(/\s+/) : [];
+  const topic = extractTopicFromMessage(message, history, context);
+  const hasBlogSignal =
+    /(blog|article|post|write|draft|create|story|content|idea|founder|marketing|productivity|business|brand|strategy|startup|seo|ai|growth|workflow|team|product)/.test(
+      lowerMessage
+    ) || messageTokens.length >= 4;
+
+  return hasBlogSignal && isUsefulTopic(topic) && messageTokens.length >= 2;
+}
+
 function formatDraftAsChatReply(draft) {
   return [
     "Ready blog prepared.",
@@ -703,7 +737,7 @@ function buildLocalChatReply({ message, context, history }) {
   const lastUserPrompt = getLastMeaningfulUserPrompt(history);
   const combinedBrief = [lastUserPrompt, message].filter(Boolean).join("\n\n");
 
-  if (wantsReadyBlog(message)) {
+  if (shouldAutoCreateBlog(message, history, context)) {
     if (!isUsefulTopic(topic) && !isUsefulTopic(lastUserPrompt || "")) {
       return [
         "I can prepare a ready blog, but I need the topic first.",
@@ -763,11 +797,7 @@ function buildLocalChatReply({ message, context, history }) {
     return buildSummaryReply(topic);
   }
 
-  if (
-    /(code|bug|fix|error|backend|frontend|server|api|database|mongodb|react|node|auth|login|deploy)/.test(
-      lowerMessage
-    )
-  ) {
+  if (isTechnicalRequest(lowerMessage)) {
     return buildTechnicalReply(message);
   }
 
@@ -870,7 +900,7 @@ router.post("/chat", async (req, res) => {
         );
 
   try {
-    if (wantsReadyBlog(message)) {
+    if (shouldAutoCreateBlog(message, history, context)) {
       const response = await requestAssistant({
         instructions: `${SYSTEM_PROMPT}
 
@@ -887,7 +917,9 @@ Rules:
 - "title" must be publication-ready
 - "summary" should be one concise sentence
 - "content" should be a complete, publish-ready blog with a strong opening, clear sectioning, and a practical conclusion
-- Make the result polished, specific, and useful for a real reader`,
+- Make the result polished, specific, and useful for a real reader
+- Do not ask follow-up questions if you can reasonably infer the missing details
+- When audience or tone is not explicit, choose sensible professional defaults`,
         input: `Platform context:\n${serializedContext}\n\nRecent conversation:\n${
           conversation || "No previous messages."
         }\n\nUser request:\n${message}`,
@@ -919,7 +951,13 @@ Rules:
     const response = await requestAssistant({
       instructions: `${SYSTEM_PROMPT}
 
-You are currently helping inside Atlas Journal, a professional blogging platform. Be especially strong at blog ideas, titles, summaries, structure, drafts, UX copy, and practical solutions related to content workflows.`,
+You are currently helping inside Atlas Journal, a professional blogging platform.
+
+Rules for this workspace:
+- Be especially strong at blog ideas, titles, summaries, structure, drafts, UX copy, and practical solutions related to content workflows.
+- Do not give generic checklists when the user is clearly asking for content.
+- If the user gives a topic or rough idea, convert it into a concrete answer instead of asking for more details unless absolutely necessary.
+- Prefer useful deliverables over vague advice.`,
       input: `Platform context:\n${serializedContext}\n\nRecent conversation:\n${
         conversation || "No previous messages."
       }\n\nUser request:\n${message}`,
