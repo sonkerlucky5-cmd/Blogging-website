@@ -1,0 +1,14 @@
+{
+  "watch": [
+    ".env",
+    "server.js",
+    "routes",
+    "models",
+    "middleware",
+    "utils",
+    "scripts",
+    "data"
+  ],
+  "ext": "js,mjs,cjs,json,env",
+  "exec": "node server.js"
+}

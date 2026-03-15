@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   HiOutlineMicrophone,
-  HiOutlinePaperAirplane,
   HiOutlineSpeakerWave,
   HiOutlineSpeakerXMark,
   HiOutlineSparkles,
@@ -12,22 +11,16 @@ import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
 import "./AIAssistant.css";
 
-const STARTER_PROMPTS = [
-  "Give me 3 blog title ideas for a founder-focused article.",
-  "Turn this rough topic into a sharper outline for my next post.",
-  "Write a clean intro paragraph for a professional tech blog.",
-  "Summarize my article into a strong one-line excerpt.",
-];
-
 const INITIAL_MESSAGE = {
   role: "assistant",
   content:
-    "Need help with a title, outline, summary, or sharper blog copy? Ask here.",
+    "Tell me your topic, audience, and tone. I will help turn it into a stronger blog.",
 };
 
 function AIAssistant() {
   const location = useLocation();
   const { user } = useAuth();
+  const composerRef = useRef(null);
   const recognitionRef = useRef(null);
   const transcriptRef = useRef("");
   const sendMessageRef = useRef(null);
@@ -44,6 +37,7 @@ function AIAssistant() {
   const [supportsSpeaking, setSupportsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const accountLabel = user?.name || user?.username || "Guest workspace";
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -276,6 +270,15 @@ function AIAssistant() {
     await sendMessage(input);
   };
 
+  const handleComposerKeyDown = async (event) => {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    await sendMessage(input);
+  };
+
   const handleToggleListening = () => {
     if (!supportsListening || !recognitionRef.current) {
       setVoiceStatus("Voice input is not supported in this browser.");
@@ -331,68 +334,23 @@ function AIAssistant() {
       {open ? (
         <div className="ai-assistant__panel glass-panel">
           <div className="ai-assistant__header">
-            <div>
+            <div className="ai-assistant__header-copy">
               <span className="ai-assistant__label">AI assistant</span>
-              <strong>Atlas writing copilot</strong>
+              <strong>Atlas editorial desk</strong>
+              <p>Write a clear prompt and read the answer without extra clutter.</p>
             </div>
 
-            <button
-              type="button"
-              className="ai-assistant__close"
-              onClick={handleClose}
-              aria-label="Close assistant"
-            >
-              <HiOutlineXMark />
-            </button>
-          </div>
-
-          {notice && <p className="ai-assistant__notice">{notice}</p>}
-
-          <div className="ai-assistant__voice">
-            <div className="ai-assistant__voice-actions">
-              <button
-                type="button"
-                className={`ai-assistant__voice-button${
-                  isListening ? " is-active" : ""
-                }`}
-                onClick={handleToggleListening}
-                disabled={loading}
-              >
-                <HiOutlineMicrophone />
-                {isListening ? "Listening" : "Listen"}
-              </button>
+            <div className="ai-assistant__header-actions">
+              <span className="ai-assistant__status-badge">{accountLabel}</span>
 
               <button
                 type="button"
-                className={`ai-assistant__voice-button${
-                  isSpeaking ? " is-active" : ""
-                }`}
-                onClick={handleToggleSpeakReply}
+                className="ai-assistant__close"
+                onClick={handleClose}
+                aria-label="Close assistant"
               >
-                {isSpeaking ? <HiOutlineSpeakerXMark /> : <HiOutlineSpeakerWave />}
-                {isSpeaking ? "Stop voice" : "Speak answer"}
+                <HiOutlineXMark />
               </button>
-            </div>
-
-            <p className="ai-assistant__voice-status">
-              {voiceStatus ||
-                "Use quick prompts, type a message, or ask with your microphone."}
-            </p>
-          </div>
-
-          <div className="ai-assistant__prompt-block">
-            <span className="ai-assistant__prompt-label">Prompt shortcuts</span>
-            <div className="ai-assistant__prompts">
-              {STARTER_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  className="ai-assistant__prompt"
-                  onClick={() => sendMessage(prompt)}
-                >
-                  {prompt}
-                </button>
-              ))}
             </div>
           </div>
 
@@ -421,26 +379,39 @@ function AIAssistant() {
 
           <form className="ai-assistant__composer" onSubmit={handleSubmit}>
             <textarea
+              ref={composerRef}
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask for ideas, outlines, summaries, or draft improvements..."
-              rows="3"
+              onKeyDown={handleComposerKeyDown}
+              placeholder="Describe your topic, audience, tone, or the exact blog you want..."
+              rows="4"
             />
+
+            {notice && <p className="ai-assistant__notice">{notice}</p>}
+            {voiceStatus && <p className="ai-assistant__voice-status">{voiceStatus}</p>}
 
             <div className="ai-assistant__composer-actions">
               <button
                 type="button"
-                className="button-secondary ai-assistant__composer-voice"
+                className={`ai-assistant__composer-icon${
+                  isListening ? " is-active" : ""
+                }`}
                 onClick={handleToggleListening}
                 disabled={loading}
+                aria-label={isListening ? "Stop listening" : "Start voice input"}
               >
                 <HiOutlineMicrophone />
-                Voice prompt
               </button>
 
-              <button type="submit" className="button-primary" disabled={loading}>
-                <HiOutlinePaperAirplane />
-                Send
+              <button
+                type="button"
+                className={`ai-assistant__composer-icon${
+                  isSpeaking ? " is-active" : ""
+                }`}
+                onClick={handleToggleSpeakReply}
+                aria-label={isSpeaking ? "Stop voice reply" : "Read latest answer"}
+              >
+                {isSpeaking ? <HiOutlineSpeakerXMark /> : <HiOutlineSpeakerWave />}
               </button>
             </div>
           </form>

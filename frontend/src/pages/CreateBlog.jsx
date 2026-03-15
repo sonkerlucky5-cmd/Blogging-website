@@ -47,6 +47,7 @@ const PROFESSIONAL_STARTERS = [
       "Draft a professional editorial operations article about briefs, review cycles, publishing standards, and stronger article consistency.",
   },
 ];
+const READY_MODE = "ready";
 
 function CreateBlog() {
   const navigate = useNavigate();
@@ -130,15 +131,16 @@ function CreateBlog() {
         ...currentForm,
         title: data.title || draftRequest.title || currentForm.title,
         category: data.category || draftRequest.category || currentForm.category,
-        image:
-          currentForm.image.trim() ||
-          overrides.image ||
-          currentForm.image ||
-          "",
+        image: data.image || overrides.image || currentForm.image || "",
         content: data.content || draftRequest.content || currentForm.content,
       }));
       setAiNotice(data.notice || "");
-      setAiStatus(data.summary || "AI draft applied to your editor.");
+      setAiStatus(
+        data.summary ||
+          (mode === READY_MODE
+            ? "Ready blog applied to your editor."
+            : "AI draft applied to your editor.")
+      );
     } catch (err) {
       console.error("AI draft error:", err);
       setAiError(
@@ -160,7 +162,7 @@ function CreateBlog() {
       image: starter.image,
     }));
 
-    void handleGenerateDraft("draft", {
+    void handleGenerateDraft(READY_MODE, {
       brief: starter.brief,
       title: starter.title,
       category: starter.category,
@@ -421,16 +423,21 @@ function CreateBlog() {
         <aside className="create-sidebar">
           <div className="glass-panel create-assistant">
             <p className="eyebrow">AI writing copilot</p>
-            <h3>Generate a stronger first draft</h3>
+            <h3>Assistant can prepare the full blog for you</h3>
             <p>
-              Describe the angle, audience, or outcome you want. AI can build a
-              draft or improve what you already wrote.
+              Give one brief and the assistant can prepare a ready blog with a
+              stronger title, category, cover image, and article body.
             </p>
+
+            <div className="create-assistant__lead">
+              <strong>One brief, ready blog</strong>
+              <span>Best when you want a publish-ready starting point instead of an outline only.</span>
+            </div>
 
             <textarea
               value={aiBrief}
               onChange={(event) => setAiBrief(event.target.value)}
-              placeholder="Example: Write a blog for startup founders on using AI assistants in content workflows."
+              placeholder="Example: Write a professional blog for startup founders on using AI assistants in content workflows, with a clear intro, practical sections, and a strong conclusion."
               rows="5"
             />
 
@@ -438,10 +445,19 @@ function CreateBlog() {
               <button
                 type="button"
                 className="button-primary"
+                onClick={() => handleGenerateDraft(READY_MODE)}
+                disabled={aiLoading}
+              >
+                {aiLoading ? "Preparing..." : "Prepare ready blog"}
+              </button>
+
+              <button
+                type="button"
+                className="button-secondary"
                 onClick={() => handleGenerateDraft("draft")}
                 disabled={aiLoading}
               >
-                {aiLoading ? "Generating..." : "Generate draft"}
+                Generate draft
               </button>
 
               <button

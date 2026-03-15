@@ -343,6 +343,27 @@
   gap: 16px;
 }
 
+.create-assistant__lead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(42, 93, 134, 0.06), transparent 100%),
+    var(--surface-highlight);
+}
+
+.create-assistant__lead strong {
+  font-size: 0.98rem;
+}
+
+.create-assistant__lead span {
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
 .create-assistant textarea {
   width: 100%;
   min-height: 140px;
