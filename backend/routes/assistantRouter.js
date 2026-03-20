@@ -1040,6 +1040,7 @@ Rules:
 - Return plain text only inside JSON string values
 - Do not use markdown
 - Do not use asterisks, bullet symbols, or # headings
+- Keep the writing easy to scan with short paragraphs and line-by-line readability
 - Make the result polished, specific, and useful for a real reader
 - Do not ask follow-up questions if you can reasonably infer the missing details
 - When audience or tone is not explicit, choose sensible professional defaults`,
@@ -1083,6 +1084,7 @@ Rules for this workspace:
 - Return plain text only
 - Do not use markdown
 - Do not use asterisks for emphasis or bullets
+- Keep the answer easy to scan with short lines and short paragraphs
 - Prefer useful deliverables over vague advice.`,
       input: `Platform context:\n${serializedContext}\n\nRecent conversation:\n${
         conversation || "No previous messages."
@@ -1163,6 +1165,7 @@ Rules:
 - Return plain text only inside JSON string values
 - Do not use markdown
 - Do not use asterisks, bullet symbols, or # headings
+- Keep the writing easy to scan with short paragraphs and line-by-line readability
 - If mode is "improve", preserve the user's main idea but make it sharper`,
       input: `Mode: ${mode}
 

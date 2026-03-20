@@ -20,7 +20,7 @@ const INITIAL_MESSAGE = {
 };
 
 function formatAssistantContent(content) {
-  return content
+  const cleanedContent = content
     .replace(/^Ready blog prepared\.\s*/i, "")
     .replace(/^#{1,6}\s*/gm, "")
     .replace(/^\*\s+/gm, "- ")
@@ -28,6 +28,19 @@ function formatAssistantContent(content) {
     .replace(/\*(.*?)\*/g, "$1")
     .replace(/`([^`]+)`/g, "$1")
     .trim();
+
+  return cleanedContent
+    .split(/\n{2,}/)
+    .map((block) => {
+      const normalizedBlock = block.replace(/\s+/g, " ").trim();
+
+      if (normalizedBlock.length <= 140) {
+        return normalizedBlock;
+      }
+
+      return normalizedBlock.replace(/([.!?])\s+(?=[A-Z0-9])/g, "$1\n");
+    })
+    .join("\n\n");
 }
 
 function AIAssistant() {
