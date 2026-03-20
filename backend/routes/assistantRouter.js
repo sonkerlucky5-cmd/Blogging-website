@@ -3,6 +3,7 @@ import express from "express";
 const router = express.Router();
 
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/responses";
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const CATEGORY_OPTIONS = [
   "Strategy",
@@ -19,7 +20,7 @@ const LOCAL_FALLBACK_MODEL = "local-editorial-fallback";
 const DEFAULT_CHAT_MAX_OUTPUT_TOKENS = 900;
 const DEFAULT_READY_BLOG_MAX_OUTPUT_TOKENS = 2200;
 const LOCAL_NOTICE =
-  "Using local writing helper mode. Add GEMINI_API_KEY or OPENAI_API_KEY to backend/.env and restart the backend for full AI responses.";
+  "Using local writing helper mode. Add GROQ_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY to backend/.env and restart the backend for full AI responses.";
 const GENERIC_TOPIC_PHRASES = new Set([
   "that topic",
   "this topic",
@@ -168,16 +169,32 @@ function getOpenAiModel() {
   return process.env.OPENAI_MODEL?.trim() || "gpt-5-mini";
 }
 
-function getAssistantRuntime(provider) {
+function getGroqModel() {
+  return process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-20b";
+}
+
+function getPreferredProvider() {
+  const configuredProvider = process.env.AI_PROVIDER?.trim().toLowerCase();
+
+  if (["groq", "google", "openai", "auto"].includes(configuredProvider)) {
+    return configuredProvider;
+  }
+
+  return "auto";
+}
+
+function getAssistantRuntime(provider, noticeOverride = "") {
   return {
     model:
-      provider === "openai"
+      provider === "groq"
+        ? getGroqModel()
+        : provider === "openai"
         ? getOpenAiModel()
         : provider === "google"
           ? getGeminiModel()
           : LOCAL_FALLBACK_MODEL,
     provider,
-    notice: provider === "local" ? LOCAL_NOTICE : "",
+    notice: provider === "local" ? noticeOverride || LOCAL_NOTICE : "",
   };
 }
 
@@ -213,6 +230,10 @@ function getGeminiApiKey() {
     process.env.GOOGLE_API_KEY?.trim() ||
     ""
   );
+}
+
+function getGroqApiKey() {
+  return process.env.GROQ_API_KEY?.trim() || "";
 }
 
 function getGeminiResponseText(payload) {
@@ -283,6 +304,67 @@ async function requestOpenAiAssistant({
 
   return {
     provider: "openai",
+    text,
+  };
+}
+
+async function requestGroqAssistant({
+  instructions,
+  input,
+  textFormat,
+  maxOutputTokens,
+}) {
+  const apiKey = getGroqApiKey();
+
+  if (!apiKey) {
+    throw createHttpError(
+      "Missing GROQ_API_KEY in backend environment variables",
+      503
+    );
+  }
+
+  const response = await fetch(GROQ_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: getGroqModel(),
+      instructions,
+      input,
+      ...(Number.isInteger(maxOutputTokens) && maxOutputTokens > 0
+        ? {
+            max_output_tokens: maxOutputTokens,
+          }
+        : {}),
+      ...(textFormat
+        ? {
+            text: {
+              format: textFormat,
+            },
+          }
+        : {}),
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw createHttpError(
+      payload.error?.message || "Groq request failed",
+      response.status
+    );
+  }
+
+  const text = getOpenAiResponseText(payload);
+
+  if (!text) {
+    throw createHttpError("Assistant returned an empty response", 502);
+  }
+
+  return {
+    provider: "groq",
     text,
   };
 }
@@ -373,6 +455,44 @@ async function requestAssistant({
   textFormat,
   maxOutputTokens,
 }) {
+  const preferredProvider = getPreferredProvider();
+
+  if (preferredProvider === "groq") {
+    return requestGroqAssistant({
+      instructions,
+      input,
+      textFormat,
+      maxOutputTokens,
+    });
+  }
+
+  if (preferredProvider === "google") {
+    return requestGeminiAssistant({
+      instructions,
+      input,
+      textFormat,
+      maxOutputTokens,
+    });
+  }
+
+  if (preferredProvider === "openai") {
+    return requestOpenAiAssistant({
+      instructions,
+      input,
+      textFormat,
+      maxOutputTokens,
+    });
+  }
+
+  if (getGroqApiKey()) {
+    return requestGroqAssistant({
+      instructions,
+      input,
+      textFormat,
+      maxOutputTokens,
+    });
+  }
+
   if (getGeminiApiKey()) {
     return requestGeminiAssistant({
       instructions,
@@ -392,7 +512,7 @@ async function requestAssistant({
   }
 
   throw createHttpError(
-    "Missing GEMINI_API_KEY or OPENAI_API_KEY in backend environment variables",
+    "Missing GROQ_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in backend environment variables",
     503
   );
 }
@@ -917,6 +1037,9 @@ Rules:
 - "title" must be publication-ready
 - "summary" should be one concise sentence
 - "content" should be a complete, publish-ready blog with a strong opening, clear sectioning, and a practical conclusion
+- Return plain text only inside JSON string values
+- Do not use markdown
+- Do not use asterisks, bullet symbols, or # headings
 - Make the result polished, specific, and useful for a real reader
 - Do not ask follow-up questions if you can reasonably infer the missing details
 - When audience or tone is not explicit, choose sensible professional defaults`,
@@ -957,6 +1080,9 @@ Rules for this workspace:
 - Be especially strong at blog ideas, titles, summaries, structure, drafts, UX copy, and practical solutions related to content workflows.
 - Do not give generic checklists when the user is clearly asking for content.
 - If the user gives a topic or rough idea, convert it into a concrete answer instead of asking for more details unless absolutely necessary.
+- Return plain text only
+- Do not use markdown
+- Do not use asterisks for emphasis or bullets
 - Prefer useful deliverables over vague advice.`,
       input: `Platform context:\n${serializedContext}\n\nRecent conversation:\n${
         conversation || "No previous messages."
@@ -972,9 +1098,29 @@ Rules for this workspace:
     console.warn("Assistant chat fallback:", error.message);
     return res.json({
       reply: buildLocalChatReply({ message, context, history }),
-      ...getAssistantRuntime("local"),
+      ...getAssistantRuntime(
+        "local",
+        `${LOCAL_NOTICE} Last provider error: ${error.message}`
+      ),
     });
   }
+});
+
+router.get("/status", (req, res) => {
+  const preferredProvider = getPreferredProvider();
+  const hasGroqKey = Boolean(getGroqApiKey());
+  const hasGeminiKey = Boolean(getGeminiApiKey());
+  const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY?.trim());
+
+  res.json({
+    providerPreference: preferredProvider,
+    configuredProviders: {
+      groq: hasGroqKey,
+      google: hasGeminiKey,
+      openai: hasOpenAiKey,
+    },
+    activeFallback: !hasGroqKey && !hasGeminiKey && !hasOpenAiKey,
+  });
 });
 
 router.post("/draft", async (req, res) => {
@@ -1014,6 +1160,9 @@ Rules:
 - "content" should be a polished blog draft with a strong intro, clear body sections, and a practical conclusion
 - If mode is "ready", make the article feel publish-ready with stronger sectioning, clearer authority, and enough depth for a professional blog post
 - Keep the draft readable and professional
+- Return plain text only inside JSON string values
+- Do not use markdown
+- Do not use asterisks, bullet symbols, or # headings
 - If mode is "improve", preserve the user's main idea but make it sharper`,
       input: `Mode: ${mode}
 
@@ -1060,7 +1209,10 @@ ${content.slice(0, 6000) || "No existing content provided."}`,
         category,
         content,
       }),
-      ...getAssistantRuntime("local"),
+      ...getAssistantRuntime(
+        "local",
+        `${LOCAL_NOTICE} Last provider error: ${error.message}`
+      ),
     });
   }
 });

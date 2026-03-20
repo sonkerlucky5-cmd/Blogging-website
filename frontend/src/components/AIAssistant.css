@@ -173,22 +173,46 @@
 .ai-assistant__message--assistant {
   background: var(--surface-highlight);
   align-self: flex-start;
+  width: 100%;
+  max-width: none;
 }
 
 .ai-assistant__message--user {
   background: var(--accent-soft);
   border-color: transparent;
   align-self: flex-end;
+  max-width: min(84%, 420px);
 }
 
-.ai-assistant__message-role {
-  display: inline-block;
-  margin-bottom: 6px;
+.ai-assistant__message-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.ai-assistant__copy-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-strong);
   color: var(--ink-soft);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 700;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    background-color 180ms ease;
+}
+
+.ai-assistant__copy-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-line-strong);
+  color: var(--ink);
 }
 
 .ai-assistant__message p {
@@ -198,6 +222,13 @@
   line-height: 1.68;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.ai-assistant__loading {
+  padding: 4px 2px 0;
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 .ai-assistant__composer {

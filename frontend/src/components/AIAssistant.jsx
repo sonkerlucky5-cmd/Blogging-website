@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
+  HiCheck,
+  HiOutlineClipboardDocument,
   HiOutlineMicrophone,
   HiOutlineSpeakerWave,
   HiOutlineSpeakerXMark,
@@ -17,6 +19,17 @@ const INITIAL_MESSAGE = {
     "Type any topic and I will return a ready blog directly. If you only want titles, an outline, or a summary, say that clearly.",
 };
 
+function formatAssistantContent(content) {
+  return content
+    .replace(/^Ready blog prepared\.\s*/i, "")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/^\*\s+/gm, "- ")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .trim();
+}
+
 function AIAssistant() {
   const location = useLocation();
   const { user } = useAuth();
@@ -31,6 +44,7 @@ function AIAssistant() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [loading, setLoading] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState(null);
   const [notice, setNotice] = useState("");
   const [voiceStatus, setVoiceStatus] = useState("");
   const [supportsListening, setSupportsListening] = useState(false);
@@ -223,11 +237,12 @@ function AIAssistant() {
 
       setNotice(data.notice || "");
       setMessages((currentMessages) => {
+        const cleanReply = formatAssistantContent(data.reply || "");
         const nextMessages = [
           ...currentMessages,
           {
             role: "assistant",
-            content: data.reply,
+            content: cleanReply,
           },
         ];
 
@@ -236,7 +251,7 @@ function AIAssistant() {
       });
 
       if (options.speakReply && supportsSpeaking) {
-        speakText(data.reply);
+        speakText(formatAssistantContent(data.reply || ""));
       } else {
         setVoiceStatus("");
       }
@@ -329,6 +344,24 @@ function AIAssistant() {
     setOpen(false);
   };
 
+  const handleCopyMessage = async (content, index) => {
+    const textToCopy = content.trim();
+
+    if (!textToCopy || typeof navigator === "undefined" || !navigator.clipboard) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopiedIndex(index);
+      window.setTimeout(() => {
+        setCopiedIndex((currentIndex) => (currentIndex === index ? null : currentIndex));
+      }, 1800);
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
+  };
+
   return (
     <div className={`ai-assistant${open ? " is-open" : ""}`}>
       {open ? (
@@ -355,23 +388,38 @@ function AIAssistant() {
           </div>
 
           <div className="ai-assistant__messages">
-            {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                className={`ai-assistant__message ai-assistant__message--${message.role}`}
-              >
-                <span className="ai-assistant__message-role">
-                  {message.role === "assistant" ? "Assistant" : "You"}
-                </span>
-                <p>{message.content}</p>
-              </div>
-            ))}
+            {messages.map((message, index) => {
+              const isAssistant = message.role === "assistant";
+              const displayContent = isAssistant
+                ? formatAssistantContent(message.content)
+                : message.content;
+
+              return (
+                <div
+                  key={`${message.role}-${index}`}
+                  className={`ai-assistant__message ai-assistant__message--${message.role}`}
+                >
+                  {isAssistant ? (
+                    <div className="ai-assistant__message-toolbar">
+                      <button
+                        type="button"
+                        className="ai-assistant__copy-button"
+                        onClick={() => handleCopyMessage(displayContent, index)}
+                        aria-label="Copy answer"
+                      >
+                        {copiedIndex === index ? <HiCheck /> : <HiOutlineClipboardDocument />}
+                        <span>{copiedIndex === index ? "Copied" : "Copy"}</span>
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <p>{displayContent}</p>
+                </div>
+              );
+            })}
 
             {loading && (
-              <div className="ai-assistant__message ai-assistant__message--assistant">
-                <span className="ai-assistant__message-role">Assistant</span>
-                <p>Thinking through your request...</p>
-              </div>
+              <div className="ai-assistant__loading">Generating answer...</div>
             )}
 
             <div ref={messagesEndRef} />
