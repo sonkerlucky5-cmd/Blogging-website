@@ -71,6 +71,13 @@
   object-fit: cover;
 }
 
+.blogdetails-video {
+  width: 100%;
+  min-height: 100%;
+  aspect-ratio: 1.16;
+  border: 0;
+}
+
 .blogdetails-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;

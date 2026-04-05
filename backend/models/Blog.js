@@ -42,6 +42,11 @@ const blogSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    video: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   {
     timestamps: true,

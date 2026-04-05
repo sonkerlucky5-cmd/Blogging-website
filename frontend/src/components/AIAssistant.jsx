@@ -16,7 +16,7 @@ import "./AIAssistant.css";
 const INITIAL_MESSAGE = {
   role: "assistant",
   content:
-    "Type any topic and I will return a ready blog directly. If you only want titles, an outline, or a summary, say that clearly.",
+    "Ask any question normally. If you want a ready blog, say: write a ready blog about your topic.",
 };
 
 function formatAssistantContent(content) {
@@ -383,7 +383,7 @@ function AIAssistant() {
             <div className="ai-assistant__header-copy">
               <span className="ai-assistant__label">AI assistant</span>
               <strong>Atlas editorial desk</strong>
-              <p>Write a clear prompt and read the answer without extra clutter.</p>
+              <p>Ask a question directly, or explicitly ask for a ready blog.</p>
             </div>
 
             <div className="ai-assistant__header-actions">
@@ -444,7 +444,7 @@ function AIAssistant() {
               value={input}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleComposerKeyDown}
-              placeholder="Example: AI tools for small business productivity"
+              placeholder="Example: What is SEO and why is it important?"
               rows="4"
             />
 

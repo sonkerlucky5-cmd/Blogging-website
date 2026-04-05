@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom";
-import { HiOutlineArrowRight, HiOutlineTrash } from "react-icons/hi2";
+import {
+  HiOutlineArrowRight,
+  HiOutlinePlayCircle,
+  HiOutlineTrash,
+} from "react-icons/hi2";
 import { resolveImageUrl } from "../lib/api";
+import PROFESSIONAL_MEDIA from "../lib/media";
 import { formatBlogDate, getExcerpt, getReadingTime } from "../utils/blogs";
 import "./BlogCard.css";
 
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80";
+const FALLBACK_IMAGE = PROFESSIONAL_MEDIA.editorialDesk;
 
 function BlogCard({ blog, onDelete, showDelete = false }) {
   const imageUrl = resolveImageUrl(blog.image) || FALLBACK_IMAGE;
@@ -21,6 +25,12 @@ function BlogCard({ blog, onDelete, showDelete = false }) {
       <Link to={`/blog/${blog._id}`} className="article-card__link">
         <div className="article-card__media">
           <img src={imageUrl} alt={blog.title} />
+          {blog.video && (
+            <span className="article-card__video-badge">
+              <HiOutlinePlayCircle />
+              Video
+            </span>
+          )}
         </div>
 
         <div className="article-card__content">

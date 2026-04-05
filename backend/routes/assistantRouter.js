@@ -1,4 +1,5 @@
 import express from "express";
+import { CATEGORY_COVER_IMAGES } from "../data/coverImages.js";
 
 const router = express.Router();
 
@@ -134,27 +135,6 @@ const CATEGORY_KEYWORDS = {
   Product: ["product", "roadmap", "feature", "discovery", "launch"],
   Editorial: ["editorial", "writing", "storytelling", "content", "publishing"],
 };
-const CATEGORY_COVER_IMAGES = {
-  Strategy:
-    "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1400&q=80",
-  Engineering:
-    "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80",
-  Operations:
-    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80",
-  Growth:
-    "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&q=80",
-  Systems:
-    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80",
-  Leadership:
-    "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1400&q=80",
-  Design:
-    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80",
-  Product:
-    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80",
-  Editorial:
-    "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=80",
-};
-
 function createHttpError(message, statusCode) {
   const error = new Error(message);
   error.statusCode = statusCode;
@@ -723,19 +703,24 @@ function shouldAutoCreateBlog(message, history = [], context = {}) {
     return true;
   }
 
-  if (isFormattingRequest(lowerMessage) || isTechnicalRequest(lowerMessage)) {
+  if (
+    isFormattingRequest(lowerMessage) ||
+    isTechnicalRequest(lowerMessage) ||
+    /(^|\s)(what|why|how|can|could|should|which|when|where|who|is|are|do|does|did|will|kya|kaise|kyu|kyun|batao|explain|tell me)(\s|$)|\?/.test(
+      lowerMessage
+    )
+  ) {
     return false;
   }
 
   const normalizedMessage = normalizeForMatch(message);
   const messageTokens = normalizedMessage ? normalizedMessage.split(/\s+/) : [];
   const topic = extractTopicFromMessage(message, history, context);
-  const hasBlogSignal =
-    /(blog|article|post|write|draft|create|story|content|idea|founder|marketing|productivity|business|brand|strategy|startup|seo|ai|growth|workflow|team|product)/.test(
-      lowerMessage
-    ) || messageTokens.length >= 4;
+  const hasExplicitBlogSignal =
+    /(blog|article|post|draft|story)/.test(lowerMessage) &&
+    /(write|create|generate|make|prepare|ready|full|complete)/.test(lowerMessage);
 
-  return hasBlogSignal && isUsefulTopic(topic) && messageTokens.length >= 2;
+  return hasExplicitBlogSignal && isUsefulTopic(topic) && messageTokens.length >= 2;
 }
 
 function formatDraftAsChatReply(draft) {
@@ -1080,7 +1065,9 @@ You are currently helping inside Atlas Journal, a professional blogging platform
 Rules for this workspace:
 - Be especially strong at blog ideas, titles, summaries, structure, drafts, UX copy, and practical solutions related to content workflows.
 - Do not give generic checklists when the user is clearly asking for content.
-- If the user gives a topic or rough idea, convert it into a concrete answer instead of asking for more details unless absolutely necessary.
+- Answer the user's real question directly by default.
+- Do not automatically convert short topics into full blog posts unless the user explicitly asks for a blog, article, draft, or ready blog.
+- If the user asks a question, give a direct practical answer instead of turning it into content generation.
 - Return plain text only
 - Do not use markdown
 - Do not use asterisks for emphasis or bullets

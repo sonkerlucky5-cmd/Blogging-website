@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import VideoEmbed, { getVideoDescriptor } from "../components/VideoEmbed";
 import api, { resolveImageUrl } from "../lib/api";
+import PROFESSIONAL_MEDIA from "../lib/media";
 import { useAuth } from "../context/AuthContext";
 import { getExcerpt, getReadingTime } from "../utils/blogs";
 import "./CreateBlog.css";
 
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=1400&q=80";
+const FALLBACK_IMAGE = PROFESSIONAL_MEDIA.writingStudio;
 const CATEGORY_OPTIONS = [
   "Strategy",
   "Engineering",
@@ -23,8 +24,7 @@ const PROFESSIONAL_STARTERS = [
     label: "Founder memo",
     title: "How Founders Can Turn AI Into a Reliable Content Operating System",
     category: "Strategy",
-    image:
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80",
+    image: PROFESSIONAL_MEDIA.executiveBriefing,
     brief:
       "Write a professional blog for startup founders on using AI assistants to improve editorial planning, content quality, and execution without losing brand clarity.",
   },
@@ -32,8 +32,7 @@ const PROFESSIONAL_STARTERS = [
     label: "Product dispatch",
     title: "What Strong Product Teams Get Right About Shipping AI Features",
     category: "Product",
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80",
+    image: PROFESSIONAL_MEDIA.modernWorkspace,
     brief:
       "Create a polished article for product leaders about launching AI features with better discovery, quality control, and user trust.",
   },
@@ -41,8 +40,7 @@ const PROFESSIONAL_STARTERS = [
     label: "Editorial playbook",
     title: "A Better Editorial Workflow for Modern Publishing Teams",
     category: "Editorial",
-    image:
-      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=80",
+    image: PROFESSIONAL_MEDIA.editorialDesk,
     brief:
       "Draft a professional editorial operations article about briefs, review cycles, publishing standards, and stronger article consistency.",
   },
@@ -58,6 +56,7 @@ function CreateBlog() {
     author: "",
     category: "Strategy",
     image: "",
+    video: "",
     content: "",
   });
   const [error, setError] = useState("");
@@ -193,6 +192,7 @@ function CreateBlog() {
         author: form.author.trim() || "Anonymous",
         category: form.category,
         image: form.image.trim(),
+        video: form.video.trim(),
         content: form.content.trim(),
       };
 
@@ -207,6 +207,7 @@ function CreateBlog() {
   };
 
   const previewImage = resolveImageUrl(form.image) || FALLBACK_IMAGE;
+  const previewVideo = getVideoDescriptor(form.video);
   const wordCount = form.content.trim()
     ? form.content.trim().split(/\s+/).filter(Boolean).length
     : 0;
@@ -222,8 +223,8 @@ function CreateBlog() {
       passed: form.author.trim().length >= 2,
     },
     {
-      label: "Cover image is attached",
-      passed: Boolean(form.image.trim()),
+      label: "Cover media is attached",
+      passed: Boolean(form.image.trim() || form.video.trim()),
     },
     {
       label: "Article has enough depth",
@@ -358,6 +359,19 @@ function CreateBlog() {
           </label>
 
           <label>
+            <span>Video URL</span>
+            <input
+              type="text"
+              placeholder="YouTube, Vimeo, or direct .mp4 link"
+              value={form.video}
+              onChange={updateField("video")}
+            />
+            <small className="create-form__hint">
+              Supports YouTube, Vimeo, and direct MP4 or WebM links.
+            </small>
+          </label>
+
+          <label>
             <span>Story</span>
             <textarea
               placeholder="Write your article here..."
@@ -477,8 +491,18 @@ function CreateBlog() {
 
           <div className="glass-panel create-preview">
             <p className="eyebrow">Live preview</p>
-            <div className="create-preview__image">
-              <img src={previewImage} alt={form.title || "Preview"} />
+            <div className="create-preview__media">
+              {previewVideo ? (
+                <VideoEmbed
+                  descriptor={previewVideo}
+                  title={form.title || "Preview video"}
+                  className="create-preview__video"
+                />
+              ) : (
+                <div className="create-preview__image">
+                  <img src={previewImage} alt={form.title || "Preview"} />
+                </div>
+              )}
             </div>
             <h3>{form.title || "Your future headline"}</h3>
             <div className="create-preview__meta">
@@ -486,6 +510,7 @@ function CreateBlog() {
               <span className="meta-pill">{form.author.trim() || "Anonymous"}</span>
               <span className="meta-pill">{getReadingTime(form.content)}</span>
               <span className="meta-pill">{wordCount || 0} words</span>
+              {previewVideo && <span className="meta-pill">Video attached</span>}
             </div>
             <p>{getExcerpt(form.content || "Start writing to generate a preview.", 180)}</p>
           </div>

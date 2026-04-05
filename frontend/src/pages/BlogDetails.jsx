@@ -3,7 +3,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { HiOutlineArrowLeft, HiOutlineTrash } from "react-icons/hi2";
 import BlogCard from "../components/BlogCard";
 import LoadingScreen from "../components/LoadingScreen";
+import VideoEmbed, { getVideoDescriptor } from "../components/VideoEmbed";
 import api, { resolveImageUrl } from "../lib/api";
+import PROFESSIONAL_MEDIA from "../lib/media";
 import {
   formatBlogDate,
   getExcerpt,
@@ -12,8 +14,7 @@ import {
 } from "../utils/blogs";
 import "./BlogDetails.css";
 
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80";
+const FALLBACK_IMAGE = PROFESSIONAL_MEDIA.studioOffice;
 
 function BlogDetails() {
   const { id } = useParams();
@@ -109,6 +110,7 @@ function BlogDetails() {
   }
 
   const paragraphs = getParagraphs(blog.content);
+  const videoDescriptor = getVideoDescriptor(blog.video);
 
   return (
     <div className="blogdetails-page page-container">
@@ -136,10 +138,18 @@ function BlogDetails() {
         </div>
 
         <div className="blogdetails-media">
-          <img
-            src={resolveImageUrl(blog.image) || FALLBACK_IMAGE}
-            alt={blog.title}
-          />
+          {videoDescriptor ? (
+            <VideoEmbed
+              descriptor={videoDescriptor}
+              title={blog.title}
+              className="blogdetails-video"
+            />
+          ) : (
+            <img
+              src={resolveImageUrl(blog.image) || FALLBACK_IMAGE}
+              alt={blog.title}
+            />
+          )}
         </div>
       </section>
 
@@ -170,6 +180,10 @@ function BlogDetails() {
               <div>
                 <dt>Read time</dt>
                 <dd>{getReadingTime(blog.content)}</dd>
+              </div>
+              <div>
+                <dt>Media</dt>
+                <dd>{videoDescriptor ? "Video" : "Image"}</dd>
               </div>
             </dl>
 

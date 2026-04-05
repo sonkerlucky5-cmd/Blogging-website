@@ -4,11 +4,11 @@ import { HiOutlineArrowRight } from "react-icons/hi2";
 import BlogCard from "../components/BlogCard";
 import LoadingScreen from "../components/LoadingScreen";
 import api, { resolveImageUrl } from "../lib/api";
+import PROFESSIONAL_MEDIA from "../lib/media";
 import { formatBlogDate, getExcerpt, getReadingTime } from "../utils/blogs";
 import "./Home.css";
 
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80";
+const FALLBACK_IMAGE = PROFESSIONAL_MEDIA.executiveBriefing;
 
 function Home() {
   const [blogs, setBlogs] = useState([]);

@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node server.js",
-    "seed:blogs": "node scripts/seedBlogs.js"
+    "seed:blogs": "node scripts/seedBlogs.js",
+    "sync:blogs": "node scripts/syncSampleBlogs.js"
   },
   "dependencies": {
     "axios": "^1.11.0",

@@ -65,12 +65,13 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { title, content, category, author, image } = req.body;
+    const { title, content, category, author, image, video } = req.body;
     const normalizedTitle = title?.trim() || "";
     const normalizedContent = content?.trim() || "";
     const normalizedCategory = category?.trim() || "Editorial";
     const normalizedAuthor = author?.trim() || "Anonymous";
     const normalizedImage = image?.trim() || "";
+    const normalizedVideo = video?.trim() || "";
 
     if (!normalizedTitle || !normalizedContent) {
       return res
@@ -96,6 +97,7 @@ router.post("/", async (req, res) => {
       category: normalizedCategory,
       author: normalizedAuthor,
       image: normalizedImage,
+      video: normalizedVideo,
     });
 
     await newPost.save();
@@ -158,6 +160,10 @@ router.put("/:id", async (req, res) => {
 
     if (typeof updates.image === "string") {
       updates.image = updates.image.trim();
+    }
+
+    if (typeof updates.video === "string") {
+      updates.video = updates.video.trim();
     }
 
     const updatedPost = await Blog.findByIdAndUpdate(req.params.id, updates, {
