@@ -4,14 +4,40 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 100%;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-lg);
-  background: var(--surface-strong);
-  box-shadow: var(--shadow-soft);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   transition:
     transform 220ms ease,
     box-shadow 220ms ease,
     border-color 220ms ease;
+}
+
+[data-theme="dark"] .article-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.article-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 40%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dark"] .article-card::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.article-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .article-card:hover {

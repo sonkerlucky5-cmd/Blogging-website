@@ -102,17 +102,29 @@ body {
   min-width: 320px;
   font-family: "Manrope", "Segoe UI", sans-serif;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 12% 10%, var(--page-orb-1), transparent 28%),
-    radial-gradient(circle at 88% 8%, var(--page-orb-2), transparent 24%),
-    radial-gradient(circle at 50% 100%, var(--page-orb-3), transparent 36%),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 48%, var(--bg-bottom) 100%);
+  background: var(--bg-top);
   background-attachment: fixed;
   -webkit-text-size-adjust: 100%;
   transition: background-color 220ms ease, color 220ms ease;
 }
 
 body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  width: 140%;
+  height: 140%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 30% 30%, var(--page-orb-1), transparent 40%),
+    radial-gradient(circle at 70% 70%, var(--page-orb-2), transparent 35%),
+    radial-gradient(circle at 80% 20%, var(--page-orb-3), transparent 45%),
+    radial-gradient(circle at 20% 80%, var(--page-orb-1), transparent 40%);
+  animation: mesh-animation 30s ease-in-out infinite alternate;
+  z-index: -2;
+}
+
+body::after {
   content: "";
   position: fixed;
   inset: 0;
@@ -123,6 +135,14 @@ body::before {
   background-size: 72px 72px;
   mask-image: radial-gradient(circle at center, black 36%, transparent 88%);
   opacity: 0.5;
+  z-index: -1;
+}
+
+@keyframes mesh-animation {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(3%, -3%) scale(1.05); }
+  66% { transform: translate(-2%, 4%) scale(0.98); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
 a {
@@ -194,10 +214,36 @@ img {
 
 .glass-panel {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  position: relative;
+}
+
+[data-theme="dark"] .glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 40%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dark"] .glass-panel::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.glass-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .eyebrow {

@@ -116,7 +116,7 @@ function BlogDetails() {
     <div className="blogdetails-page page-container">
       <button
         type="button"
-        className="blogdetails-back"
+        className="glass-panel blogdetails-back"
         onClick={() => navigate(-1)}
       >
         <HiOutlineArrowLeft />

@@ -170,8 +170,8 @@ function BlogList() {
               {loading
                 ? "--"
                 : `${String(pagination.page).padStart(2, "0")}/${String(
-                    pagination.totalPages
-                  ).padStart(2, "0")}`}
+                  pagination.totalPages
+                ).padStart(2, "0")}`}
             </strong>
             <span>Page position</span>
           </div>
@@ -232,9 +232,8 @@ function BlogList() {
                       <button
                         key={item}
                         type="button"
-                        className={`bloglist-pagination__page${
-                          item === pagination.page ? " is-active" : ""
-                        }`}
+                        className={`bloglist-pagination__page${item === pagination.page ? " is-active" : ""
+                          }`}
                         onClick={() => handlePageChange(item)}
                         aria-current={item === pagination.page ? "page" : undefined}
                       >

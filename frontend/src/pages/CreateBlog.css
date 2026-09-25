@@ -16,12 +16,21 @@
   gap: 12px;
   padding: clamp(16px, 2.5vw, 24px);
   border-radius: 24px;
-  background: var(--surface-highlight);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition:
     transform 220ms ease,
     box-shadow 220ms ease,
     border-color 220ms ease;
+}
+
+[data-theme="dark"] .create-hero__notice {
+  background: rgba(10, 18, 29, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .create-hero__notice:hover,
@@ -42,7 +51,13 @@
 .create-hero__notice--welcome {
   background:
     linear-gradient(180deg, rgba(42, 93, 134, 0.08), transparent 100%),
-    var(--surface-highlight);
+    rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .create-hero__notice--welcome {
+  background:
+    linear-gradient(180deg, rgba(127, 178, 216, 0.08), transparent 100%),
+    rgba(10, 18, 29, 0.3);
 }
 
 .create-hero__notice span {
@@ -131,11 +146,22 @@
   flex-direction: column;
   gap: 18px;
   padding: clamp(16px, 2.5vw, 22px);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 26px;
   background:
-    linear-gradient(180deg, rgba(42, 93, 134, 0.06), transparent 100%),
-    var(--surface-highlight);
+    linear-gradient(180deg, rgba(42, 93, 134, 0.08), transparent 100%),
+    rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .create-form__starter {
+  background:
+    linear-gradient(180deg, rgba(127, 178, 216, 0.08), transparent 100%),
+    rgba(10, 18, 29, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .create-form__starter-copy p {
@@ -154,11 +180,20 @@
   gap: 10px;
   min-height: 160px;
   padding: clamp(14px, 2vw, 18px);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 22px;
-  background: var(--surface-strong);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   cursor: pointer;
   text-align: left;
+}
+
+[data-theme="dark"] .create-form__starter-card {
+  background: rgba(12, 21, 33, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .create-form__starter-card strong {
