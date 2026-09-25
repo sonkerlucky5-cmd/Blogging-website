@@ -1,5 +1,5 @@
 .auth-page {
-  width: min(1120px, calc(100vw - 32px));
+  width: min(1120px, calc(100% - 32px));
   margin: auto;
   display: grid;
   grid-template-columns: minmax(0, 0.94fr) minmax(0, 0.86fr);
@@ -224,7 +224,7 @@
 @media (max-width: 1024px) {
   .auth-page {
     grid-template-columns: 1fr;
-    width: min(580px, calc(100vw - 32px));
+    width: min(580px, calc(100% - 32px));
     padding: 20px 0;
   }
 
@@ -243,11 +243,15 @@
   }
 
   .auth-page {
-    width: min(100%, calc(100vw - 24px));
+    width: calc(100% - 24px);
   }
 }
 
 @media (max-width: 480px) {
+  .auth-page {
+    width: calc(100% - 16px);
+  }
+
   .auth-showcase__stats {
     grid-template-columns: 1fr;
   }

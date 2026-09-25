@@ -3,6 +3,7 @@
   right: clamp(10px, 2vw, 18px);
   bottom: clamp(10px, 2vw, 18px);
   z-index: 45;
+  max-width: calc(100vw - 20px);
 }
 
 .ai-assistant__trigger {
@@ -36,7 +37,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: min(540px, calc(100vw - 28px));
+  width: min(540px, calc(100vw - 32px));
   max-height: min(84vh, 880px);
   padding: 16px;
   border-radius: 22px;
@@ -286,8 +287,18 @@
 }
 
 @media (max-width: 720px) {
+  .ai-assistant {
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
   .ai-assistant__panel {
-    width: min(100vw - 20px, 100%);
+    width: 100%;
     max-height: min(88vh, 780px);
     padding: 14px;
   }
