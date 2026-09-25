@@ -1,5 +1,5 @@
 .blogdetails-page {
-  gap: 26px;
+  gap: clamp(18px, 3vw, 26px);
 }
 
 .blogdetails-back {
@@ -26,36 +26,38 @@
 
 .blogdetails-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.86fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr);
+  gap: clamp(16px, 2.5vw, 24px);
   align-items: stretch;
 }
 
 .blogdetails-copy {
-  padding: clamp(28px, 4vw, 42px);
+  padding: clamp(20px, 3.5vw, 42px);
 }
 
 .blogdetails-copy h1 {
   margin: 0;
-  max-width: 12ch;
+  max-width: 14ch;
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(2.4rem, 4vw, 4.2rem);
+  font-size: clamp(1.8rem, 3.5vw, 4.2rem);
   line-height: 0.98;
   text-wrap: balance;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .blogdetails-excerpt {
   margin: 20px 0 0;
   color: var(--ink-soft);
   line-height: 1.75;
-  font-size: 1.05rem;
+  font-size: clamp(0.9rem, 1.3vw, 1.05rem);
 }
 
 .blogdetails-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 28px;
+  margin-top: clamp(16px, 3vw, 28px);
 }
 
 .blogdetails-media {
@@ -74,25 +76,27 @@
 .blogdetails-video {
   width: 100%;
   min-height: 100%;
-  aspect-ratio: 1.16;
+  aspect-ratio: 16 / 9;
   border: 0;
 }
 
 .blogdetails-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 24px;
+  gap: clamp(16px, 2.5vw, 24px);
 }
 
 .blogdetails-article {
-  padding: clamp(28px, 4vw, 44px);
+  padding: clamp(20px, 3.5vw, 44px);
 }
 
 .blogdetails-article p {
   margin: 0 0 20px;
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
   line-height: 1.9;
   color: var(--ink);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .blogdetails-sidebar {
@@ -103,7 +107,7 @@
 
 .blogdetails-panel,
 .blogdetails-cta {
-  padding: 26px;
+  padding: clamp(18px, 3vw, 26px);
   transition:
     transform 220ms ease,
     box-shadow 220ms ease,
@@ -122,7 +126,7 @@
 .blogdetails-related h3 {
   margin: 0 0 14px;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
   line-height: 1.12;
   text-wrap: balance;
 }
@@ -149,6 +153,8 @@
   margin: 0;
   font-weight: 700;
   text-align: right;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .blogdetails-delete {
@@ -177,5 +183,31 @@
   .blogdetails-hero,
   .blogdetails-layout {
     grid-template-columns: 1fr;
+  }
+
+  .blogdetails-media {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 720px) {
+  .blogdetails-media {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .blogdetails-media {
+    max-height: 220px;
+    border-radius: 18px;
+  }
+
+  .blogdetails-panel dl div {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .blogdetails-panel dd {
+    text-align: left;
   }
 }

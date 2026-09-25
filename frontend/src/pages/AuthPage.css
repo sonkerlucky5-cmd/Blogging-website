@@ -2,14 +2,14 @@
   width: min(1120px, calc(100vw - 32px));
   margin: auto;
   display: grid;
-  grid-template-columns: minmax(0, 0.94fr) minmax(360px, 0.86fr);
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 0.86fr);
   gap: 24px;
   align-self: center;
 }
 
 .auth-showcase,
 .auth-card {
-  border-radius: 32px;
+  border-radius: clamp(22px, 3vw, 32px);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(18px);
@@ -18,8 +18,8 @@
 .auth-showcase {
   position: relative;
   overflow: hidden;
-  min-height: 700px;
-  padding: clamp(32px, 5vw, 50px);
+  min-height: clamp(360px, 60vw, 700px);
+  padding: clamp(22px, 4vw, 50px);
   background:
     linear-gradient(180deg, rgba(17, 29, 52, 0.52), rgba(17, 29, 52, 0.9)),
     url("https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80")
@@ -30,7 +30,7 @@
 .auth-showcase::after {
   content: "";
   position: absolute;
-  inset: 24px;
+  inset: clamp(12px, 2vw, 24px);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 24px;
   pointer-events: none;
@@ -43,7 +43,7 @@
   height: 100%;
   flex-direction: column;
   justify-content: space-between;
-  gap: 28px;
+  gap: clamp(18px, 3vw, 28px);
 }
 
 .auth-showcase__inner > .brand-lockup {
@@ -52,11 +52,12 @@
 
 .auth-showcase__inner h1 {
   margin: 0;
-  max-width: 9ch;
+  max-width: 12ch;
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(2.7rem, 5vw, 4.6rem);
+  font-size: clamp(1.8rem, 4vw, 4.6rem);
   line-height: 0.98;
   text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 .auth-showcase__inner p {
@@ -64,16 +65,17 @@
   max-width: 46ch;
   color: rgba(255, 255, 255, 0.82);
   line-height: 1.8;
+  font-size: clamp(0.85rem, 1.3vw, 1rem);
 }
 
 .auth-showcase__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: clamp(8px, 1.5vw, 14px);
 }
 
 .auth-showcase__stats div {
-  padding: 18px;
+  padding: clamp(12px, 2vw, 18px);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -94,12 +96,12 @@
   display: block;
   margin-bottom: 6px;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.65rem;
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
 }
 
 .auth-showcase__stats span {
   color: rgba(255, 255, 255, 0.76);
-  font-size: 0.9rem;
+  font-size: clamp(0.78rem, 1.2vw, 0.9rem);
 }
 
 .auth-showcase__panel {
@@ -107,7 +109,7 @@
   flex-direction: column;
   gap: 10px;
   max-width: 420px;
-  padding: 22px 24px;
+  padding: clamp(16px, 2.5vw, 22px) clamp(18px, 3vw, 24px);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -124,7 +126,7 @@
 
 .auth-showcase__panel strong {
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.4rem;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
   line-height: 1.12;
   text-wrap: balance;
 }
@@ -138,14 +140,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(30px, 5vw, 44px);
+  padding: clamp(22px, 4vw, 44px);
   background: var(--surface-strong);
 }
 
 .auth-card h2 {
   margin: 0;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 2.2rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
   line-height: 1.06;
   text-wrap: balance;
 }
@@ -174,12 +176,13 @@
 
 .auth-form input {
   width: 100%;
-  padding: 16px 18px;
+  padding: clamp(12px, 2vw, 16px) clamp(14px, 2vw, 18px);
   border: 1px solid var(--field-border);
   border-radius: 18px;
   background: var(--field-surface);
   color: var(--ink);
   outline: none;
+  font-size: 1rem;
   transition:
     border-color 180ms ease,
     transform 180ms ease,
@@ -221,17 +224,49 @@
 @media (max-width: 1024px) {
   .auth-page {
     grid-template-columns: 1fr;
+    width: min(580px, calc(100vw - 32px));
     padding: 20px 0;
   }
 
   .auth-showcase {
-    min-height: 420px;
+    min-height: 380px;
   }
 }
 
 @media (max-width: 720px) {
-  .auth-showcase__stats,
+  .auth-showcase__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .auth-form__row {
     grid-template-columns: 1fr;
+  }
+
+  .auth-page {
+    width: min(100%, calc(100vw - 24px));
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-showcase__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-showcase {
+    min-height: 300px;
+    padding: 18px;
+  }
+
+  .auth-card {
+    padding: 18px;
+  }
+
+  .auth-showcase::after {
+    inset: 10px;
+    border-radius: 18px;
+  }
+
+  .auth-showcase__panel {
+    max-width: none;
   }
 }

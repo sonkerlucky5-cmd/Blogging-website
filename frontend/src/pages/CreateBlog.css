@@ -1,12 +1,12 @@
 .create-page {
-  gap: 30px;
+  gap: clamp(20px, 3vw, 30px);
 }
 
 .create-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 24px;
-  padding: clamp(26px, 4vw, 40px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: clamp(16px, 2.5vw, 24px);
+  padding: clamp(20px, 3.5vw, 40px);
 }
 
 .create-hero__notice {
@@ -14,7 +14,7 @@
   flex-direction: column;
   justify-content: center;
   gap: 12px;
-  padding: 24px;
+  padding: clamp(16px, 2.5vw, 24px);
   border-radius: 24px;
   background: var(--surface-highlight);
   border: 1px solid var(--line);
@@ -36,7 +36,7 @@
 
 .create-hero__notice strong {
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
 }
 
 .create-hero__notice--welcome {
@@ -48,6 +48,7 @@
 .create-hero__notice span {
   color: var(--ink-soft);
   line-height: 1.75;
+  font-size: clamp(0.85rem, 1.3vw, 1rem);
 }
 
 .create-hero__welcome-points {
@@ -74,14 +75,14 @@
 .create-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 24px;
+  gap: clamp(16px, 2.5vw, 24px);
 }
 
 .create-form,
 .create-assistant,
 .create-preview,
 .create-tips {
-  padding: clamp(24px, 4vw, 34px);
+  padding: clamp(18px, 3.5vw, 34px);
 }
 
 .create-assistant,
@@ -109,9 +110,10 @@
 .create-tips h3 {
   margin: 0 0 10px;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.8rem;
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
   line-height: 1.08;
   text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 .create-form__header p,
@@ -128,7 +130,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 22px;
+  padding: clamp(16px, 2.5vw, 22px);
   border: 1px solid var(--line);
   border-radius: 26px;
   background:
@@ -150,8 +152,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 180px;
-  padding: 18px;
+  min-height: 160px;
+  padding: clamp(14px, 2vw, 18px);
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--surface-strong);
@@ -160,8 +162,9 @@
 }
 
 .create-form__starter-card strong {
-  font-size: 1rem;
+  font-size: clamp(0.88rem, 1.2vw, 1rem);
   line-height: 1.45;
+  overflow-wrap: break-word;
 }
 
 .create-form__starter-card span:last-child {
@@ -205,12 +208,13 @@
 .create-form select,
 .create-form textarea {
   width: 100%;
-  padding: 16px 18px;
+  padding: clamp(12px, 2vw, 16px) clamp(14px, 2vw, 18px);
   border: 1px solid var(--field-border);
   border-radius: 18px;
   background: var(--field-surface);
   color: var(--ink);
   outline: none;
+  font-size: 1rem;
   transition:
     border-color 180ms ease,
     transform 180ms ease,
@@ -227,7 +231,7 @@
 }
 
 .create-form textarea {
-  min-height: 260px;
+  min-height: 200px;
   resize: vertical;
 }
 
@@ -249,7 +253,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 22px;
+  padding: clamp(16px, 2.5vw, 22px);
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--surface-highlight);
@@ -266,8 +270,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 62px;
-  min-height: 62px;
+  min-width: 56px;
+  min-height: 56px;
+  flex-shrink: 0;
   padding: 0 12px;
   border-radius: 18px;
   background: var(--accent-soft);
@@ -285,13 +290,14 @@
 .create-form__review-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
+  min-height: 36px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--ink-soft);
-  font-size: 0.88rem;
+  font-size: clamp(0.78rem, 1.2vw, 0.88rem);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .create-form__review-pill.is-passed {
@@ -315,7 +321,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 20px 22px;
+  padding: clamp(14px, 2.5vw, 20px) clamp(16px, 2.5vw, 22px);
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--surface-highlight);
@@ -330,6 +336,7 @@
 .create-form__submit-bar span {
   color: var(--ink-soft);
   line-height: 1.6;
+  font-size: clamp(0.82rem, 1.2vw, 0.95rem);
 }
 
 .create-form__submit {
@@ -372,14 +379,15 @@
 
 .create-assistant textarea {
   width: 100%;
-  min-height: 140px;
-  padding: 16px 18px;
+  min-height: 120px;
+  padding: clamp(12px, 2vw, 16px) clamp(14px, 2vw, 18px);
   border: 1px solid var(--field-border);
   border-radius: 18px;
   background: var(--field-surface);
   color: var(--ink);
   outline: none;
   resize: vertical;
+  font-size: 1rem;
   transition:
     border-color 180ms ease,
     transform 180ms ease,
@@ -458,7 +466,7 @@
 
 @media (max-width: 1180px) {
   .create-form__starter-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -466,6 +474,10 @@
   .create-hero,
   .create-layout {
     grid-template-columns: 1fr;
+  }
+
+  .create-form__starter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -483,5 +495,33 @@
   .create-assistant__actions > *,
   .create-form__submit {
     width: 100%;
+  }
+
+  .create-form__starter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .create-form__starter-card {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .create-form__review-pill {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .create-form__review-score {
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+
+  .create-hero__welcome-points span {
+    font-size: 0.76rem;
+    min-height: 30px;
+    padding: 0 10px;
   }
 }

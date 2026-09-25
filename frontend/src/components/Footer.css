@@ -6,9 +6,9 @@
 
 .site-footer__inner {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(160px, 0.6fr)) minmax(200px, 0.85fr);
-  gap: 26px;
-  padding: 30px;
+  grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 0.6fr)) minmax(0, 0.85fr);
+  gap: clamp(18px, 2.5vw, 26px);
+  padding: clamp(20px, 3vw, 30px);
   transition:
     transform 220ms ease,
     box-shadow 220ms ease,
@@ -26,6 +26,7 @@
 .site-footer__meta {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .site-footer__brand p,
@@ -33,6 +34,7 @@
   margin: 18px 0 0;
   color: var(--ink-soft);
   line-height: 1.75;
+  font-size: clamp(0.85rem, 1.2vw, 0.95rem);
 }
 
 .site-footer__group {
@@ -64,7 +66,7 @@
 
 .site-footer__meta strong {
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
   line-height: 1.1;
 }
 
@@ -88,6 +90,6 @@
 
   .site-footer__inner {
     grid-template-columns: 1fr;
-    padding: 24px;
+    padding: 20px;
   }
 }
