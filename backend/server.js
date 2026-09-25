@@ -56,9 +56,12 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+import adminRouter from "./routes/adminRouter.js";
+
 app.use("/api/posts", postRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/assistant", assistantRouter);
+app.use("/api/admin", adminRouter);
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {

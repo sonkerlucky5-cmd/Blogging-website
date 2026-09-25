@@ -25,4 +25,25 @@ export async function requireAuth(req, res, next) {
   }
 }
 
+export function requireAdmin(req, res, next) {
+  try {
+    const authorization = req.headers.authorization || "";
+    const [scheme, token] = authorization.split(" ");
+
+    if (scheme !== "Bearer" || !token) {
+      return res.status(401).json({ message: "Admin authorization token is required" });
+    }
+
+    const decoded = jwt.verify(token, getJwtSecret());
+    if (decoded.role === "admin") {
+      req.isAdmin = true;
+      return next();
+    }
+    
+    return res.status(403).json({ message: "Access denied. Admin privileges required." });
+  } catch (error) {
+    return res.status(401).json({ message: "Invalid or expired admin token" });
+  }
+}
+
 export default requireAuth;

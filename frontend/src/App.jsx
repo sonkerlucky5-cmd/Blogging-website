@@ -31,9 +31,11 @@ function App() {
     </ThemeProvider>
   );
 }
+import AdminDashboard from "./pages/AdminDashboard";
+
 function AppRoutes() {
   const location = useLocation();
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
 
   const hideOnRoutes = ["/login", "/register"];
   const hideNavbar = hideOnRoutes.some((p) => location.pathname.startsWith(p));
@@ -63,6 +65,7 @@ function AppRoutes() {
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/admin" element={user?.isAdmin ? <AdminDashboard /> : <Navigate to="/" />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

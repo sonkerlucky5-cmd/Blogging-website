@@ -95,6 +95,14 @@ function Navbar() {
                 <span>{label}</span>
               </NavLink>
             ))}
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `navbar__link ${isActive ? " active" : ""}`
+              }
+            >
+              <span>Admin</span>
+            </NavLink>
           </div>
 
           <form className="navbar__search" onSubmit={handleSearch} role="search">
