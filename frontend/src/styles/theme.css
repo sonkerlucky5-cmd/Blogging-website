@@ -95,6 +95,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -108,6 +109,8 @@ body {
     radial-gradient(circle at 50% 100%, var(--page-orb-3), transparent 36%),
     linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 48%, var(--bg-bottom) 100%);
   background-attachment: fixed;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
   transition: background-color 220ms ease, color 220ms ease;
 }
 
@@ -131,7 +134,8 @@ a {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
@@ -142,10 +146,12 @@ button {
 img {
   display: block;
   max-width: 100%;
+  height: auto;
 }
 
 #root {
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -157,6 +163,7 @@ img {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .main-content {
@@ -218,12 +225,14 @@ img {
 
 .section-heading {
   margin: 0;
-  max-width: 12ch;
+  max-width: 16ch;
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 1.02;
+  font-size: clamp(1.65rem, 4vw, 4rem);
+  line-height: 1.05;
   letter-spacing: -0.04em;
   text-wrap: balance;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .section-copy {
@@ -231,6 +240,7 @@ img {
   max-width: 62ch;
   color: var(--ink-soft);
   line-height: 1.7;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
 }
 
 .section-header {
@@ -243,11 +253,13 @@ img {
 .section-header h2,
 .section-header h3 {
   margin: 0;
-  max-width: 14ch;
+  max-width: 18ch;
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  font-size: clamp(1.3rem, 2.8vw, 2.2rem);
   line-height: 1.1;
   text-wrap: balance;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .section-header p {
@@ -267,6 +279,8 @@ img {
   border-radius: 999px;
   border: 1px solid transparent;
   font-weight: 700;
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  white-space: nowrap;
   transition:
     transform 180ms ease,
     border-color 180ms ease,
@@ -305,7 +319,7 @@ img {
 
 .status-card,
 .empty-state {
-  padding: 28px;
+  padding: clamp(18px, 3vw, 28px);
   border-radius: var(--radius-lg);
   border: 1px solid var(--line);
   background: var(--surface-strong);
@@ -346,7 +360,8 @@ img {
   background: var(--surface-highlight);
   border: 1px solid var(--line);
   color: var(--ink-soft);
-  font-size: 0.92rem;
+  font-size: clamp(0.78rem, 1.2vw, 0.92rem);
+  white-space: nowrap;
 }
 
 .card-grid {
@@ -355,6 +370,18 @@ img {
   gap: var(--space-xl);
 }
 
+/* ── Ultra-wide ── */
+@media (min-width: 1920px) {
+  :root {
+    --content-width: min(1400px, calc(100vw - 80px));
+  }
+
+  .card-grid {
+    gap: var(--space-2xl);
+  }
+}
+
+/* ── Laptop / small desktop ── */
 @media (max-width: 1024px) {
   .main-content {
     padding-bottom: 56px;
@@ -365,9 +392,14 @@ img {
   }
 }
 
+/* ── Tablet portrait ── */
 @media (max-width: 720px) {
   :root {
-    --content-width: min(100vw - 20px, 100%);
+    --content-width: min(100vw - 24px, 100%);
+    --space-3xl: 28px;
+    --space-2xl: 22px;
+    --space-xl: 18px;
+    --space-lg: 14px;
   }
 
   .main-content {
@@ -388,5 +420,47 @@ img {
   .status-card,
   .empty-state {
     border-radius: 22px;
+  }
+
+  .eyebrow::before {
+    width: 24px;
+  }
+}
+
+/* ── Small mobile ── */
+@media (max-width: 480px) {
+  :root {
+    --content-width: min(100vw - 16px, 100%);
+    --radius-xl: 22px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+  }
+
+  .section-heading {
+    max-width: none;
+  }
+
+  .button-primary,
+  .button-secondary,
+  .button-ghost {
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: 0.88rem;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }
