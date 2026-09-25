@@ -1,37 +1,67 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { HiOutlineTrash, HiOutlineUsers, HiOutlineDocumentText } from "react-icons/hi2";
+import { HiOutlineTrash, HiOutlineUsers, HiOutlineDocumentText, HiOutlineArrowRightOnRectangle } from "react-icons/hi2";
 import api from "../lib/api";
 import LoadingScreen from "../components/LoadingScreen";
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
+  const [adminToken, setAdminToken] = useState(localStorage.getItem("adminToken"));
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
   const [stats, setStats] = useState({ totalUsers: 0, totalBlogs: 0 });
   const [users, setUsers] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [activeTab, setActiveTab] = useState("users");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAdminData();
-  }, []);
+    if (adminToken) {
+      fetchAdminData();
+    }
+  }, [adminToken]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError("");
+    try {
+      const res = await api.post("/admin/login", { password });
+      localStorage.setItem("adminToken", res.data.token);
+      setAdminToken(res.data.token);
+    } catch (err) {
+      setLoginError(err.response?.data?.message || "Login failed");
+    }
+  };
+
+  const logoutAdmin = () => {
+    localStorage.removeItem("adminToken");
+    setAdminToken(null);
+  };
+
+  const getAdminHeaders = () => ({
+    headers: { Authorization: `Bearer ${adminToken}` }
+  });
 
   const fetchAdminData = async () => {
     setLoading(true);
     setError(null);
     try {
       const [statsRes, usersRes, blogsRes] = await Promise.all([
-        api.get("/admin/stats"),
-        api.get("/admin/users"),
-        api.get("/admin/blogs"),
+        api.get("/admin/stats", getAdminHeaders()),
+        api.get("/admin/users", getAdminHeaders()),
+        api.get("/admin/blogs", getAdminHeaders()),
       ]);
       setStats(statsRes.data);
       setUsers(usersRes.data);
       setBlogs(blogsRes.data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load admin data");
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        logoutAdmin();
+      }
     } finally {
       setLoading(false);
     }
@@ -40,7 +70,7 @@ function AdminDashboard() {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user and all their blogs?")) return;
     try {
-      await api.delete(`/admin/users/${userId}`);
+      await api.delete(`/admin/users/${userId}`, getAdminHeaders());
       fetchAdminData();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete user");
@@ -50,12 +80,35 @@ function AdminDashboard() {
   const handleDeleteBlog = async (blogId) => {
     if (!window.confirm("Are you sure you want to delete this blog?")) return;
     try {
-      await api.delete(`/admin/blogs/${blogId}`);
+      await api.delete(`/admin/blogs/${blogId}`, getAdminHeaders());
       fetchAdminData();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete blog");
     }
   };
+
+  if (!adminToken) {
+    return (
+      <div className="page-container admin-error">
+        <div className="glass-panel" style={{ padding: "40px", borderRadius: "20px" }}>
+          <h2>Admin Access</h2>
+          <p>Please enter the master admin password to continue.</p>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "24px" }}>
+            <input 
+              type="password" 
+              placeholder="Admin Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-input"
+              required
+            />
+            {loginError && <p style={{ color: "#ef4444", margin: 0 }}>{loginError}</p>}
+            <button type="submit" className="button-primary">Unlock Dashboard</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return <LoadingScreen title="Loading Dashboard" message="Fetching administrative data" />;
@@ -66,7 +119,7 @@ function AdminDashboard() {
       <div className="page-container admin-error">
         <h2>Access Denied or Error</h2>
         <p>{error}</p>
-        <button onClick={() => navigate("/")} className="button-primary">Go Home</button>
+        <button onClick={logoutAdmin} className="button-primary">Back to Login</button>
       </div>
     );
   }
@@ -93,6 +146,9 @@ function AdminDashboard() {
               <span>Total Blogs</span>
             </div>
           </div>
+          <button className="button-secondary" onClick={logoutAdmin} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <HiOutlineArrowRightOnRectangle /> Lock
+          </button>
         </div>
       </header>
 
@@ -120,7 +176,6 @@ function AdminDashboard() {
                   <th>Name</th>
                   <th>Username</th>
                   <th>Email</th>
-                  <th>Admin</th>
                   <th>Joined</th>
                   <th>Actions</th>
                 </tr>
@@ -131,18 +186,15 @@ function AdminDashboard() {
                     <td>{user.name}</td>
                     <td>{user.username}</td>
                     <td>{user.email}</td>
-                    <td>{user.isAdmin ? "Yes" : "No"}</td>
                     <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                     <td>
-                      {!user.isAdmin && (
-                        <button
-                          className="admin-delete-btn"
-                          onClick={() => handleDeleteUser(user._id)}
-                          title="Delete User"
-                        >
-                          <HiOutlineTrash />
-                        </button>
-                      )}
+                      <button
+                        className="admin-delete-btn"
+                        onClick={() => handleDeleteUser(user._id)}
+                        title="Delete User"
+                      >
+                        <HiOutlineTrash />
+                      </button>
                     </td>
                   </tr>
                 ))}
